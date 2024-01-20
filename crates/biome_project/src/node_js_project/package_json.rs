@@ -2,7 +2,7 @@ use crate::{LanguageRoot, Manifest};
 use biome_deserialize::json::deserialize_from_json_ast;
 use biome_deserialize::{
     Deserializable, DeserializableValue, DeserializationDiagnostic, DeserializationVisitor,
-    Deserialized, Text, VisitableType,
+    Deserialized, VisitableType,
 };
 use biome_json_syntax::JsonLanguage;
 use biome_text_size::{TextRange, TextSize};
@@ -59,10 +59,10 @@ impl DeserializationVisitor for PackageJsonVisitor {
     ) -> Option<Self::Output> {
         let mut result = Self::Output::default();
         for (key, value) in members.flatten() {
-            let Some(key_text) = Text::deserialize(&key, "", diagnostics) else {
+            let Some(key_text) = String::deserialize(&key, "", diagnostics) else {
                 continue;
             };
-            match key_text.text() {
+            match key_text.as_str() {
                 "version" => {
                     result.version = Deserializable::deserialize(&value, &key_text, diagnostics);
                 }
@@ -114,8 +114,8 @@ impl Deserializable for Version {
         diagnostics: &mut Vec<DeserializationDiagnostic>,
     ) -> Option<Self> {
         let range = value.range();
-        let value = Text::deserialize(value, name, diagnostics)?;
-        match value.text().parse() {
+        let value = String::deserialize(value, name, diagnostics)?;
+        match value.parse() {
             Ok(version) => Some(Version(version)),
             Err(err) => {
                 let (start, end) = err.location();

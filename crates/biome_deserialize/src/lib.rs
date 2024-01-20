@@ -335,7 +335,7 @@ pub trait DeserializationVisitor: Sized {
     /// The expected type is retrieved from [Self::EXPECTED_TYPE].
     fn visit_str(
         self,
-        _value: Text,
+        _value: &str,
         range: TextRange,
         name: &str,
         diagnostics: &mut Vec<DeserializationDiagnostic>,

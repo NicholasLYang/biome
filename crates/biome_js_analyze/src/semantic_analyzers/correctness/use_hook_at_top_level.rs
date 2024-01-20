@@ -8,7 +8,7 @@ use biome_analyze::{
 };
 use biome_console::markup;
 use biome_deserialize::{
-    Deserializable, DeserializableValue, DeserializationDiagnostic, DeserializationVisitor, Text,
+    Deserializable, DeserializableValue, DeserializationDiagnostic, DeserializationVisitor,
     VisitableType,
 };
 use biome_js_semantic::{CallsExtensions, SemanticModel};
@@ -21,7 +21,6 @@ use biome_js_syntax::{
 };
 use biome_rowan::{declare_node_union, AstNode, Language, SyntaxNode, WalkEvent};
 use rustc_hash::FxHashMap;
-use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
 #[cfg(feature = "schemars")]
@@ -548,7 +547,7 @@ impl Rule for UseHookAtTopLevel {
 /// Options for the `useHookAtTopLevel` rule have been deprecated, since we now
 /// use the React hook naming convention to determine whether a function is a
 /// hook.
-#[derive(Default, Deserialize, Serialize, Eq, PartialEq, Debug, Clone)]
+#[derive(Default, serde::Deserialize, serde::Serialize, Eq, PartialEq, Debug, Clone)]
 #[cfg_attr(feature = "schemars", derive(JsonSchema))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct DeprecatedHooksOptions {}
@@ -579,14 +578,14 @@ impl DeserializationVisitor for DeprecatedHooksOptionsVisitor {
     ) -> Option<Self::Output> {
         const ALLOWED_KEYS: &[&str] = &["hooks"];
         for (key, value) in members.flatten() {
-            let Some(key_text) = Text::deserialize(&key, "", diagnostics) else {
+            let Some(key_text) = String::deserialize(&key, "", diagnostics) else {
                 continue;
             };
-            match key_text.text() {
+            match key_text.as_str() {
                 "hooks" => {
                     diagnostics.push(
                         DeserializationDiagnostic::new_deprecated(
-                            key_text.text(),
+                            &key_text,
                             value.range()
                         ).with_note(
                             markup! {

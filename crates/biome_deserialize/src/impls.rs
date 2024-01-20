@@ -16,49 +16,6 @@ use std::{
     path::PathBuf,
 };
 
-/// Type that allows deserializing a string without heap-allocation.
-#[derive(Debug, Eq, PartialEq, Hash, Clone)]
-pub struct Text(pub(crate) TokenText);
-impl Text {
-    pub fn text(&self) -> &str {
-        self.0.text()
-    }
-}
-impl Deref for Text {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.text()
-    }
-}
-impl std::fmt::Display for Text {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.text())
-    }
-}
-impl Deserializable for Text {
-    fn deserialize(
-        value: &impl DeserializableValue,
-        name: &str,
-        diagnostics: &mut Vec<DeserializationDiagnostic>,
-    ) -> Option<Self> {
-        struct Visitor;
-        impl DeserializationVisitor for Visitor {
-            type Output = Text;
-            const EXPECTED_TYPE: VisitableType = VisitableType::STR;
-            fn visit_str(
-                self,
-                value: Text,
-                _range: TextRange,
-                _name: &str,
-                _diagnostics: &mut Vec<DeserializationDiagnostic>,
-            ) -> Option<Self::Output> {
-                Some(value)
-            }
-        }
-        value.deserialize(Visitor, name, diagnostics)
-    }
-}
-
 /// A string representation of an integer or a float.
 /// The format should be parsable by Rust numeric types.
 #[derive(Debug, Eq, PartialEq, Hash, Clone)]
@@ -469,7 +426,22 @@ impl Deserializable for String {
         name: &str,
         diagnostics: &mut Vec<DeserializationDiagnostic>,
     ) -> Option<Self> {
-        Text::deserialize(value, name, diagnostics).map(|value| value.text().to_string())
+        struct Visitor;
+        impl DeserializationVisitor for Visitor {
+            type Output = String;
+            const EXPECTED_TYPE: VisitableType = VisitableType::STR;
+            fn visit_str(
+                self,
+                value: &str,
+                _range: TextRange,
+                _name: &str,
+                _diagnostics: &mut Vec<DeserializationDiagnostic>,
+            ) -> Option<Self::Output> {
+                Some(value.to_string())
+            }
+        }
+
+        value.deserialize(Visitor, name, diagnostics)
     }
 }
 

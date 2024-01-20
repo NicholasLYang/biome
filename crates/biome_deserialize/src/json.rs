@@ -1,7 +1,7 @@
 //! Implementation of [DeserializableValue] for the JSON data format.
 use crate::{
     Deserializable, DeserializableValue, DeserializationDiagnostic, DeserializationVisitor,
-    Deserialized, Text, TextNumber, VisitableType,
+    Deserialized, TextNumber, VisitableType,
 };
 use biome_diagnostics::{DiagnosticExt, Error};
 use biome_json_parser::{parse_json, JsonParserOptions};
@@ -120,7 +120,7 @@ impl DeserializableValue for AnyJsonValue {
             }
             AnyJsonValue::JsonStringValue(value) => {
                 let value = value.inner_string_text().ok()?;
-                visitor.visit_str(Text(value), range, name, diagnostics)
+                visitor.visit_str(value.text(), range, name, diagnostics)
             }
         }
     }
@@ -150,7 +150,7 @@ impl DeserializableValue for JsonMemberName {
         diagnostics: &mut Vec<DeserializationDiagnostic>,
     ) -> Option<V::Output> {
         let value = self.inner_string_text().ok()?;
-        visitor.visit_str(Text(value), AstNode::range(self), name, diagnostics)
+        visitor.visit_str(value.text(), AstNode::range(self), name, diagnostics)
     }
 
     fn is_type(&self, _ty: VisitableType) -> bool {

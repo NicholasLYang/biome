@@ -190,7 +190,8 @@ fn generate_deserializable_enum(
                 name: &str,
                 diagnostics: &mut Vec<biome_deserialize::DeserializationDiagnostic>,
             ) -> Option<Self> {
-                match biome_deserialize::Text::deserialize(value, name, diagnostics)?.text() {
+                use std::string::String;
+                match <String as biome_deserialize::Deserializable>::deserialize(value, name, diagnostics)?.as_str() {
                     #(#deserialize_variants),*,
                     unknown_variant => {
                         const ALLOWED_VARIANTS: &[&str] = &[#(#allowed_variants),*];
@@ -426,13 +427,14 @@ fn generate_deserializable_struct(
                 name: &str,
                 diagnostics: &mut Vec<biome_deserialize::DeserializationDiagnostic>,
             ) -> Option<Self::Output> {
-                use biome_deserialize::{Deserializable, DeserializationDiagnostic, Text};
+                use biome_deserialize::{Deserializable, DeserializationDiagnostic};
+                use std::string::String;
                 let mut result: Self::Output = #result_init;
                 for (key, value) in members.flatten() {
-                    let Some(key_text) = Text::deserialize(&key, "", diagnostics) else {
+                    let Some(key_text) = <std::string::String as biome_deserialize::Deserializable>::deserialize(&key, "", diagnostics) else {
                         continue;
                     };
-                    match key_text.text() {
+                    match key_text.as_str() {
                         #(#deserialize_fields)*
                         unknown_key => {
                             const ALLOWED_KEYS: &[&str] = &[#(#allowed_keys),*];
