@@ -35,6 +35,7 @@ pub mod json;
 mod merge;
 mod none_state;
 pub mod string_set;
+mod unescape;
 mod validator;
 
 use biome_diagnostics::{Error, Severity};

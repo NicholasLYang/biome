@@ -1,6 +1,7 @@
 //! Implementations of [Deserializable] for common data structures.
 //!
 //! Tests of these implementations are available in [biome_deserialize::json::tests] module.
+use crate::unescape::unescape_str;
 use crate::{
     diagnostics::VisitableType, Deserializable, DeserializableValue, DeserializationDiagnostic,
     DeserializationVisitor,
@@ -433,11 +434,17 @@ impl Deserializable for String {
             fn visit_str(
                 self,
                 value: &str,
-                _range: TextRange,
+                range: TextRange,
                 _name: &str,
-                _diagnostics: &mut Vec<DeserializationDiagnostic>,
+                diagnostics: &mut Vec<DeserializationDiagnostic>,
             ) -> Option<Self::Output> {
-                Some(value.to_string())
+                match unescape_str(value) {
+                    Ok(value) => Some(value),
+                    Err(err) => {
+                        diagnostics.push(err.with_range(range));
+                        None
+                    }
+                }
             }
         }
 
